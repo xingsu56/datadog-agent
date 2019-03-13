@@ -123,7 +123,8 @@ func (ac *AutoConfig) checkTagFreshness() {
 		}
 	}
 	for _, service := range servicesToRefresh {
-		log.Debugf("Tags changed for service %s, rescheduling associated checks if any", service.GetEntity())
+		// FIXME lower log level back
+		log.Errorf("Tags changed for service %s, rescheduling associated checks if any", service.GetEntity())
 		ac.processDelService(service)
 		ac.processNewService(service)
 	}
@@ -562,6 +563,8 @@ func GetResolveWarnings() map[string][]string {
 // processNewService takes a service, tries to match it against templates and
 // triggers scheduling events if it finds a valid config for it.
 func (ac *AutoConfig) processNewService(svc listeners.Service) {
+	// FIXME: remove
+	log.Errorf("New service %s (ready %v)", svc.GetEntity(), svc.IsReady())
 	// in any case, register the service and store its tag hash
 	ac.store.setServiceForEntity(svc, svc.GetEntity())
 
@@ -588,6 +591,8 @@ func (ac *AutoConfig) processNewService(svc listeners.Service) {
 		if err != nil {
 			continue
 		}
+		// FIXME remove
+		log.Errorf("scheduling config %s for service %v", resolvedConfig.String(), ADIdentifiers)
 
 		// ask the Collector to schedule the checks
 		ac.schedule([]integration.Config{resolvedConfig})

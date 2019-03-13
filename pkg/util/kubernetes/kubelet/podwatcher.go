@@ -59,9 +59,9 @@ func (w *PodWatcher) computeChanges(podList []*Pod) ([]*Pod, error) {
 	defer w.Unlock()
 	for _, pod := range podList {
 		// Only process ready pods
-		if IsPodReady(pod) == false {
-			continue
-		}
+		// if IsPodReady(pod) == false {
+		// 	continue
+		// }
 
 		podEntity := PodUIDToEntityName(pod.Metadata.UID)
 		newStaticPod := false
@@ -78,6 +78,13 @@ func (w *PodWatcher) computeChanges(podList []*Pod) ([]*Pod, error) {
 
 		// Detect new containers
 		newContainer := false
+		// FIXME might be not necessary
+		for _, container := range pod.Status.InitContainers {
+			if _, found := w.lastSeen[container.ID]; found == false {
+				newContainer = true
+			}
+			w.lastSeen[container.ID] = now
+		}
 		for _, container := range pod.Status.Containers {
 			if _, found := w.lastSeen[container.ID]; found == false {
 				newContainer = true

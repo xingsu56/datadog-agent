@@ -95,3 +95,8 @@ func (s *DockerKubeletService) GetPorts() ([]ContainerPort, error) {
 	s.Ports = ports
 	return ports, nil
 }
+
+func (s *DockerKubeletService) IsReady() bool {
+	// TODO
+	return true
+}

@@ -558,3 +558,8 @@ func findKubernetesInLabels(labels map[string]string) bool {
 	}
 	return false
 }
+
+func (s *DockerService) IsReady() bool {
+	// TODO
+	return true
+}

@@ -240,3 +240,8 @@ func (s *ECSService) GetHostname() (string, error) {
 func (s *ECSService) GetCreationTime() integration.CreationTime {
 	return s.creationTime
 }
+
+func (s *ECSService) IsReady() bool {
+	// TODO
+	return true
+}

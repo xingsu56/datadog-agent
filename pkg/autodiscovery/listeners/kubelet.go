@@ -47,6 +47,7 @@ type KubeContainerService struct {
 	hosts         map[string]string
 	ports         []ContainerPort
 	creationTime  integration.CreationTime
+	ready         bool
 }
 
 func init() {
@@ -66,9 +67,10 @@ func NewKubeletListener() (ServiceListener, error) {
 		watcher:  watcher,
 		filter:   filter,
 		services: make(map[string]Service),
-		ticker:   time.NewTicker(15 * time.Second),
-		stop:     make(chan bool),
-		health:   health.Register("ad-kubeletlistener"),
+		// FIXME make it configurable
+		ticker: time.NewTicker(1 * time.Second),
+		stop:   make(chan bool),
+		health: health.Register("ad-kubeletlistener"),
 	}, nil
 }
 
@@ -120,11 +122,15 @@ func (l *KubeletListener) Stop() {
 func (l *KubeletListener) processNewPods(pods []*kubelet.Pod, firstRun bool) {
 	for _, pod := range pods {
 		// Ignore pending/failed/succeeded/unknown states
-		if pod.Status.Phase == "Running" {
-			for _, container := range pod.Status.Containers {
-				l.createService(container.ID, pod, firstRun)
-			}
+		// if pod.Status.Phase == "Running" {
+		// FIXME: test this
+		for _, container := range pod.Status.InitContainers {
+			l.createService(container.ID, pod, firstRun)
 		}
+		for _, container := range pod.Status.Containers {
+			l.createService(container.ID, pod, firstRun)
+		}
+		// }
 	}
 }
 
@@ -138,7 +144,10 @@ func (l *KubeletListener) createService(entity string, pod *kubelet.Pod, firstRu
 	svc := KubeContainerService{
 		entity:       entity,
 		creationTime: crTime,
+		ready:        pod.Status.Phase == "Running",
 	}
+	// FIXME: remove
+	log.Errorf("POD %s ready %v (phase %s)", entity, svc.ready, pod.Status.Phase)
 	podName := pod.Metadata.Name
 
 	// AD Identifiers
@@ -277,4 +286,8 @@ func (s *KubeContainerService) GetHostname() (string, error) {
 // GetCreationTime returns the creation time of the container compare to the agent start.
 func (s *KubeContainerService) GetCreationTime() integration.CreationTime {
 	return s.creationTime
+}
+
+func (s *KubeContainerService) IsReady() bool {
+	return s.ready
 }

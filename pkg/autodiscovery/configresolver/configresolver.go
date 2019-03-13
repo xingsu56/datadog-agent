@@ -47,6 +47,13 @@ func Resolve(tpl integration.Config, svc listeners.Service) (integration.Config,
 	copy(resolvedConfig.InitConfig, tpl.InitConfig)
 	copy(resolvedConfig.Instances, tpl.Instances)
 
+	// FIXME: reuse isCheckConfig func
+	if resolvedConfig.ClusterCheck == false && len(resolvedConfig.Instances) > 0 && !svc.IsReady() {
+		// FIXME: remove
+		log.Error("SERVICE WAS NOT READY")
+		return resolvedConfig, errors.New("cannot resolve, service not ready")
+	}
+
 	tags, err := svc.GetTags()
 	if err != nil {
 		return resolvedConfig, err
