@@ -50,11 +50,12 @@
   revision = "2cfb68475274527a10701355c739f31dd404718c"
 
 [[projects]]
-  digest = "1:b22f5da83ac471bbbe2a5aa1f07c8029dc82bcbf6ff832516f035fc3a314d539"
+  branch = "albertvaka/poc-config-enforce-schema"
+  digest = "1:4eff5c889cec3eb6e81b031f7dbb60d5b72ec73069c6e6207d207cad123f9806"
   name = "github.com/DataDog/viper"
   packages = ["."]
   pruneopts = ""
-  revision = "v1.5.0"
+  revision = "7404e0babc53add6094d7aa1e451f7f99ff8270c"
 
 [[projects]]
   digest = "1:34d4c1b61fa208e523726ddb85d01b8caa8f2de0cd656d91c81b6b86daea485c"
