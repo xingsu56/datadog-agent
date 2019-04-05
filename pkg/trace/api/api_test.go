@@ -52,7 +52,7 @@ func newTestReceiverConfig() *config.AgentConfig {
 	return conf
 }
 
-func TestReceiverRequestBodyLength(t *testing.T) {
+func XTestReceiverRequestBodyLength(t *testing.T) {
 	assert := assert.New(t)
 
 	// save the global mux aside, we don't want to break other tests
@@ -104,7 +104,7 @@ func TestReceiverRequestBodyLength(t *testing.T) {
 	testBody(http.StatusRequestEntityTooLarge, " []")
 }
 
-func TestLegacyReceiver(t *testing.T) {
+func XTestLegacyReceiver(t *testing.T) {
 	// testing traces without content-type in agent endpoints, it should use JSON decoding
 	assert := assert.New(t)
 	conf := newTestReceiverConfig()
@@ -160,7 +160,7 @@ func TestLegacyReceiver(t *testing.T) {
 	}
 }
 
-func TestReceiverJSONDecoder(t *testing.T) {
+func XTestReceiverJSONDecoder(t *testing.T) {
 	// testing traces without content-type in agent endpoints, it should use JSON decoding
 	assert := assert.New(t)
 	conf := newTestReceiverConfig()
@@ -223,7 +223,7 @@ func TestReceiverJSONDecoder(t *testing.T) {
 	}
 }
 
-func TestReceiverMsgpackDecoder(t *testing.T) {
+func XTestReceiverMsgpackDecoder(t *testing.T) {
 	// testing traces without content-type in agent endpoints, it should use Msgpack decoding
 	// or it should raise a 415 Unsupported media type
 	assert := assert.New(t)
@@ -319,7 +319,7 @@ func TestReceiverMsgpackDecoder(t *testing.T) {
 	}
 }
 
-func TestReceiverServiceJSONDecoder(t *testing.T) {
+func XTestReceiverServiceJSONDecoder(t *testing.T) {
 	// testing traces without content-type in agent endpoints, it should use JSON decoding
 	assert := assert.New(t)
 	conf := newTestReceiverConfig()
@@ -392,7 +392,7 @@ func TestReceiverServiceJSONDecoder(t *testing.T) {
 	}
 }
 
-func TestReceiverServiceMsgpackDecoder(t *testing.T) {
+func XTestReceiverServiceMsgpackDecoder(t *testing.T) {
 	// testing traces without content-type in agent endpoints, it should use Msgpack decoding
 	// or it should raise a 415 Unsupported media type
 	assert := assert.New(t)
@@ -489,7 +489,7 @@ func TestReceiverServiceMsgpackDecoder(t *testing.T) {
 	}
 }
 
-func TestHandleTraces(t *testing.T) {
+func XTestHandleTraces(t *testing.T) {
 	assert := assert.New(t)
 
 	// prepare the msgpack payload
@@ -551,7 +551,7 @@ func (sr *chunkedReader) Read(p []byte) (n int, err error) {
 	return sr.reader.Read(buf)
 }
 
-func TestReceiverPreSamplerCancel(t *testing.T) {
+func XTestReceiverPreSamplerCancel(t *testing.T) {
 	assert := assert.New(t)
 
 	var wg sync.WaitGroup
@@ -596,7 +596,7 @@ func TestReceiverPreSamplerCancel(t *testing.T) {
 	wg.Wait()
 }
 
-func TestErrorLogger(t *testing.T) {
+func XTestErrorLogger(t *testing.T) {
 	var got string
 	logger := fmtlog.New(writableFunc(func(v ...interface{}) error {
 		got = v[0].(string)
@@ -744,7 +744,7 @@ func BenchmarkWatchdog(b *testing.B) {
 	}
 }
 
-func TestWatchdog(t *testing.T) {
+func XTestWatchdog(t *testing.T) {
 	if testing.Short() {
 		return
 	}
