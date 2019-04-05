@@ -72,6 +72,9 @@ type HTTPReceiver struct {
 	debug                bool
 	refuse               int64 // when set to 1 agent will refuse payloads
 
+	bytes     int64
+	bytesLast time.Time
+
 	exit chan struct{}
 }
 
@@ -248,9 +251,8 @@ func (r *HTTPReceiver) handleTraces(v Version, w http.ResponseWriter, req *http.
 	ts := r.Stats.GetTagStats(tags)
 
 	bytesRead := req.Body.(*LimitedReader).Count
-	if bytesRead > 0 {
-		atomic.AddInt64(&ts.TracesBytes, int64(bytesRead))
-	}
+	atomic.AddInt64(&ts.TracesBytes, int64(bytesRead))
+	atomic.AddInt64(&r.bytes, int64(bytesRead))
 
 	// normalize data
 	for _, trace := range traces {
@@ -320,6 +322,8 @@ func (r *HTTPReceiver) loop() {
 
 	t := time.NewTicker(10 * time.Second)
 	defer t.Stop()
+	t2 := time.NewTicker(time.Second)
+	defer t2.Stop()
 	tw := time.NewTicker(r.conf.WatchdogInterval)
 	defer tw.Stop()
 
@@ -327,6 +331,11 @@ func (r *HTTPReceiver) loop() {
 		select {
 		case <-r.exit:
 			return
+		case <-t2.C:
+			bytes := atomic.SwapInt64(&r.bytes, 0)
+			//avg := bytes * (now.Sub(r.bytesLast).Nanoseconds() / time.Second)
+			metrics.Gauge("datadog.trace_agent.bytes_per_second", float64(bytes), nil, 1)
+			//r.bytesLast = now
 		case now := <-tw.C:
 			r.watchdog(now)
 		case now := <-t.C:
