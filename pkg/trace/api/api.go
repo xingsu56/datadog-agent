@@ -215,6 +215,7 @@ func (r *HTTPReceiver) replyTraces(v Version, w http.ResponseWriter) {
 
 // handleTraces knows how to handle a bunch of traces
 func (r *HTTPReceiver) handleTraces(v Version, w http.ResponseWriter, req *http.Request) {
+	metrics.Count("datadog.trace_agent.receiver.request", 1, nil, 1)
 	if atomic.LoadInt64(&r.refuse) == 1 {
 		// using too much memory
 		io.Copy(ioutil.Discard, req.Body)
