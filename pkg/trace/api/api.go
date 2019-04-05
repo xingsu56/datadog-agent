@@ -72,8 +72,9 @@ type HTTPReceiver struct {
 	debug                bool
 	refuse               int64 // when set to 1 agent will refuse payloads
 
-	bytes     int64
-	bytesLast time.Time
+	spans    int64
+	bytes    int64
+	lastTick time.Time
 
 	exit chan struct{}
 }
@@ -254,6 +255,7 @@ func (r *HTTPReceiver) handleTraces(v Version, w http.ResponseWriter, req *http.
 	bytesRead := req.Body.(*LimitedReader).Count
 	atomic.AddInt64(&ts.TracesBytes, int64(bytesRead))
 	atomic.AddInt64(&r.bytes, int64(bytesRead))
+	atomic.AddInt64(&r.spans, int64(len(traces)))
 
 	// normalize data
 	for _, trace := range traces {
@@ -334,9 +336,12 @@ func (r *HTTPReceiver) loop() {
 			return
 		case now := <-t2.C:
 			bytes := atomic.SwapInt64(&r.bytes, 0)
-			avg := float64(bytes) * (float64(time.Second) / float64(now.Sub(r.bytesLast).Nanoseconds()))
-			metrics.Gauge("datadog.trace_agent.bytes_per_second", avg, nil, 1)
-			r.bytesLast = now
+			spans := atomic.SwapInt64(&r.spans, 0)
+			avgBytes := float64(bytes) * (float64(time.Second) / float64(now.Sub(r.lastTick).Nanoseconds()))
+			avgSpans := float64(spans) * (float64(time.Second) / float64(now.Sub(r.lastTick).Nanoseconds()))
+			metrics.Gauge("datadog.trace_agent.bytes_per_second", avgBytes, nil, 1)
+			metrics.Gauge("datadog.trace_agent.spans_per_second", avgSpans, nil, 1)
+			r.lastTick = now
 		case now := <-tw.C:
 			r.watchdog(now)
 		case now := <-t.C:
