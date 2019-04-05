@@ -331,11 +331,11 @@ func (r *HTTPReceiver) loop() {
 		select {
 		case <-r.exit:
 			return
-		case <-t2.C:
+		case now := <-t2.C:
 			bytes := atomic.SwapInt64(&r.bytes, 0)
-			//avg := bytes * (now.Sub(r.bytesLast).Nanoseconds() / time.Second)
-			metrics.Gauge("datadog.trace_agent.bytes_per_second", float64(bytes), nil, 1)
-			//r.bytesLast = now
+			avg := float64(bytes) * (float64(time.Second) / float64(now.Sub(r.bytesLast).Nanoseconds()))
+			metrics.Gauge("datadog.trace_agent.bytes_per_second", avg, nil, 1)
+			r.bytesLast = now
 		case now := <-tw.C:
 			r.watchdog(now)
 		case now := <-t.C:
