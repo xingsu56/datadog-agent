@@ -23,7 +23,6 @@ unless windows?
 end
 
 relative_path 'integrations-core'
-whitelist_file "embedded/lib/python2.7"
 
 source git: 'https://github.com/DataDog/integrations-core.git'
 
