@@ -59,7 +59,18 @@ func TestGetTagsUnknown(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if out != "[]" {
+	if out != "null" {
+		t.Errorf("Unexpected printed value: '%s'", out)
+	}
+}
+
+func TestGetTagsErrorType(t *testing.T) {
+	code := fmt.Sprintf(`tagger.get_tags(1234, True)`)
+	out, err := run(code)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if out != "TypeError: wrong parameters type" {
 		t.Errorf("Unexpected printed value: '%s'", out)
 	}
 }

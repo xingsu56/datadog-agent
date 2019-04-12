@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"strings"
+	"unsafe"
 
 	common "github.com/DataDog/datadog-agent/six/test/common"
 )
@@ -13,7 +15,7 @@ import (
 // #cgo windows LDFLAGS: -L../../six/ -ldatadog-agent-six -lstdc++ -static
 // #include <datadog_agent_six.h>
 //
-// extern void getTags(char*, int, char **);
+// extern char **getTags(char*, int);
 //
 // static void initTaggerTests(six_t *six) {
 //    set_get_tags_cb(six, getTags);
@@ -62,7 +64,7 @@ try:
 	%s
 except Exception as e:
 	with open(r'%s', 'w') as f:
-		f.write("{}\n".format(e))
+		f.write("{}: {}\n".format(type(e).__name__, e))
 `, call, tmpfile.Name()))
 
 	ret := C.run_simple_string(six, code) == 1
@@ -72,22 +74,32 @@ except Exception as e:
 
 	output, err := ioutil.ReadFile(tmpfile.Name())
 
-	return string(output), err
+	return strings.TrimSpace(string(output)), err
 }
 
 //export getTags
-func getTags(id *C.char, highCard C.int, in **C.char) {
+func getTags(id *C.char, highCard C.int) **C.char {
 	goId := C.GoString(id)
+
+	length := 4
+	cTags := C.malloc(C.size_t(length) * C.size_t(unsafe.Sizeof(uintptr(0))))
+	// convert the C array to a Go Array so we can index it
+	indexTag := (*[1<<29 - 1]*C.char)(cTags)[:length:length]
+	indexTag[length-1] = nil
 
 	switch goId {
 	case "base":
 		// return different dummy value depending on highCard
 		if highCard == 0 {
-			*in = C.CString("[\"a\",\"b\",\"c\"]")
+			indexTag[0] = C.CString("a")
+			indexTag[1] = C.CString("b")
+			indexTag[2] = C.CString("c")
 		} else {
-			*in = C.CString("[\"A\",\"B\",\"C\"]")
+			indexTag[0] = C.CString("A")
+			indexTag[1] = C.CString("B")
+			indexTag[2] = C.CString("C")
 		}
-	default:
-		*in = C.CString("[]")
+		return (**C.char)(cTags)
 	}
+	return nil
 }

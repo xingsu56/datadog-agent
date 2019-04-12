@@ -95,7 +95,7 @@ typedef void (*cb_cgo_free_t)(void *);
 // tagger
 //
 // (id, highCard)
-typedef void (*cb_get_tags_t)(char *, int, char **);
+typedef char **(*cb_get_tags_t)(char *, int);
 
 // kubeutil
 //

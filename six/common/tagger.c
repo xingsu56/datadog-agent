@@ -4,6 +4,7 @@
 // (https://www.datadoghq.com/).
 // Copyright 2019 Datadog, Inc.
 
+#include "cgo_free.h"
 #include "sixstrings.h"
 #include <tagger.h>
 
@@ -15,22 +16,33 @@ PyObject *get_tags(PyObject *self, PyObject *args)
     if (cb_get_tags == NULL)
         Py_RETURN_NONE;
 
+    PyGILState_STATE gstate = PyGILState_Ensure();
+
     char *id;
     int highCard;
     if (!PyArg_ParseTuple(args, "si", &id, &highCard)) {
+        PyErr_SetString(PyExc_TypeError, "wrong parameters type");
+        PyGILState_Release(gstate);
+        // we need to return NULL to raise the exception set by PyErr_SetString
+        return NULL;
+    }
+
+    char **tags = cb_get_tags(id, highCard);
+
+    PyGILState_Release(gstate);
+    if (tags == NULL) {
         Py_RETURN_NONE;
     }
 
-    char *data = NULL;
-    cb_get_tags(id, highCard, &data);
-
-    // new ref
-    PyObject *value = from_json(data);
-    // TODO: free data
-    if (value == NULL) {
-        Py_RETURN_NONE;
+    PyObject *res = PyList_New(0);
+    int i;
+    for (i = 0; tags[i]; i++) {
+        PyObject *pyTag = PyStringFromCString(tags[i]);
+        cgo_free(tags[i]);
+        PyList_Append(res, pyTag);
     }
-    return value;
+    cgo_free(tags);
+    return res;
 }
 
 void _set_get_tags_cb(cb_get_tags_t cb)

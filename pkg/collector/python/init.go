@@ -94,6 +94,16 @@ void initUtilModule(six_t *six) {
 	set_get_subprocess_output_cb(six, GetSubprocessOutput);
 }
 
+//
+// tagger module
+//
+
+char **GetTags(char **, int);
+
+void initTaggerModule(six_t *six) {
+	set_get_tags_cb(six, GetTags);
+}
+
 */
 import "C"
 
