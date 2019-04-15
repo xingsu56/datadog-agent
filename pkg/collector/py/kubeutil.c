@@ -9,9 +9,11 @@
 
 // Functions
 PyObject* GetKubeletConnectionInfo();
+PyObject* CollectKubeEvents(string, string);
 
 static PyMethodDef kubeutilMethods[] = {
   {"get_connection_info", GetKubeletConnectionInfo, METH_NOARGS, "Get kubelet connection information."},
+  {"collect_kube_events", CollectKubeEvents, METH_VARARGS, "Run the event colection"},
   {NULL, NULL}
 };
 

@@ -13,7 +13,11 @@ import (
 
 	"github.com/DataDog/datadog-agent/pkg/util/log"
 
+	"github.com/DataDog/datadog-agent/pkg/aggregator"
+	"github.com/DataDog/datadog-agent/pkg/collector/check"
+	"github.com/DataDog/datadog-agent/pkg/collector/corechecks/cluster"
 	"github.com/DataDog/datadog-agent/pkg/util/cache"
+	"github.com/DataDog/datadog-agent/pkg/util/kubernetes/apiserver"
 	"github.com/DataDog/datadog-agent/pkg/util/kubernetes/kubelet"
 )
 
@@ -24,6 +28,7 @@ import (
 import "C"
 
 var kubeletCacheKey = cache.BuildAgentKey("py", "kubeutil", "connection_info")
+var eventCollectionOptions = cache.BuildAgentKey("filters")
 
 // GetKubeletConnectionInfo returns a dict containing url and credentials to connect to the kubelet.
 // The dict is empty if the kubelet was not detected. The call to kubeutil is cached for 5 minutes.
@@ -69,6 +74,22 @@ func GetKubeletConnectionInfo() *C.PyObject {
 		C.PyDict_SetItem(dict, pyKey, pyVal)
 	}
 	return dict
+}
+
+func CollectKubeEvents(checkID, eventToken string, filters []string) string {
+	sender, err := aggregator.GetSender(check.ID(checkID))
+	if err != nil {
+		return ""
+	}
+	events, modified, newToken, err := apiserver.CollectEvents(eventToken)
+	if err != nil {
+		return ""
+	}
+	err = cluster.ProcessEvents(events, modified, filters, sender)
+	if err != nil {
+		return ""
+	}
+	return newToken
 }
 
 func initKubeutil() {
